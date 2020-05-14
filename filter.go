@@ -13,12 +13,12 @@ var scopes = map[string]bool{
 }
 
 type Filter struct {
-	Name    string
-	Enabled bool
-	Scope   string
+	Name    string `json:"name"`
+	Enabled bool   `json:"enabled"`
+	Scope   string `json:"scope"`
 
-	Rules   []Rule
-	Actions []Action
+	Rules   []Rule   `json:"rules"`
+	Actions []Action `json:"actions"`
 }
 
 func (f *Filter) Scan(data []byte) (int, error) {
@@ -47,6 +47,13 @@ func (f *Filter) Scan(data []byte) (int, error) {
 	}
 
 	pos = skipWhiteSpace(data, pos+endPos)
+
+	// check enabled
+	if bytes.HasPrefix(data[pos:], []byte("false #")) {
+		pos = skipWhiteSpace(data, pos+7)
+	} else {
+		f.Enabled = true
+	}
 
 	// scope
 	endPos = bytes.IndexByte(data[pos:], ' ')
@@ -147,7 +154,14 @@ func (f Filter) String() string {
 
 	res := []string{"# rule:[" + f.Name + "]"}
 
-	rules := "if " + f.Scope
+	rules := "if "
+
+	if !f.Enabled {
+		rules = rules + "false # "
+	}
+
+	rules = rules + f.Scope
+
 	var rls []string
 
 	if f.Scope == "true" {

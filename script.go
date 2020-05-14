@@ -73,5 +73,10 @@ func (fs Script) generateRequire() string {
 		dd[r] = true
 	}
 
-	return "require " + ddRes.String() + ";"
+	rstr := ddRes.String()
+	if len(ddRes) == 1 {
+		rstr = "[" + rstr + "]"
+	}
+
+	return "require " + rstr + ";"
 }

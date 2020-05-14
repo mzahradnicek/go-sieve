@@ -12,12 +12,18 @@ func TestFilterScan(t *testing.T) {
 		Pos    int
 		Err    bool
 	}{
-		{[]byte("# rule:[Klobasy do spajze]\nif allof (exists \"From\", exists \"Subject\" )\n{\ndiscard;\n}"), Filter{Name: "Klobasy do spajze", Scope: "allof", Rules: []Rule{
+		{[]byte("# rule:[Klobasy do spajze]\nif allof (exists \"From\", exists \"Subject\" )\n{\ndiscard;\n}"), Filter{Name: "Klobasy do spajze", Enabled: true, Scope: "allof", Rules: []Rule{
 			Rule{Type: "from", Operator: "exists", TargetString: StringType{"From"}},
 			Rule{Type: "subject", Operator: "exists", TargetString: StringType{"Subject"}},
 		}, Actions: []Action{
 			Action{Type: "discard"},
 		}}, 83, false},
+		{[]byte("# rule:[Klobasy do spajze]\nif false # allof (exists \"From\", exists \"Subject\" )\n{\ndiscard;\n}"), Filter{Name: "Klobasy do spajze", Enabled: false, Scope: "allof", Rules: []Rule{
+			Rule{Type: "from", Operator: "exists", TargetString: StringType{"From"}},
+			Rule{Type: "subject", Operator: "exists", TargetString: StringType{"Subject"}},
+		}, Actions: []Action{
+			Action{Type: "discard"},
+		}}, 91, false},
 
 		// errors
 		// {[]byte("# rule:[Klobasy do spajze]\n"), Filter{Name: "Klobasy do spajze"}, 0, true},
@@ -39,7 +45,7 @@ func TestFilterString(t *testing.T) {
 	}{
 
 		// first rule
-		{"# rule:[Klobasy do spajze]\r\nif allof (exists \"From\",exists \"Subject\")\r\n{\r\n\tdiscard;\r\n}", Filter{Name: "Klobasy do spajze", Scope: "allof", Rules: []Rule{
+		{"# rule:[Klobasy do spajze]\r\nif allof (exists \"From\",exists \"Subject\")\r\n{\r\n\tdiscard;\r\n}", Filter{Name: "Klobasy do spajze", Enabled: true, Scope: "allof", Rules: []Rule{
 			Rule{Type: "from", Operator: "exists", TargetString: StringType{"From"}},
 			Rule{Type: "subject", Operator: "exists", TargetString: StringType{"Subject"}},
 		}, Actions: []Action{
@@ -47,7 +53,7 @@ func TestFilterString(t *testing.T) {
 		}}},
 
 		// second rule
-		{"# rule:[Klobasy do spajze]\r\nif allof (exists \"From\",not header :contains [\"Subject\",\"To\"] \"salamka\")\r\n{\r\n\tdiscard;\r\n}", Filter{Name: "Klobasy do spajze", Scope: "allof", Rules: []Rule{
+		{"# rule:[Klobasy do spajze]\r\nif allof (exists \"From\",not header :contains [\"Subject\",\"To\"] \"salamka\")\r\n{\r\n\tdiscard;\r\n}", Filter{Name: "Klobasy do spajze", Enabled: true, Scope: "allof", Rules: []Rule{
 			Rule{Type: "from", Operator: "exists", TargetString: StringType{"From"}},
 			Rule{Type: "...", Operator: "notcontains", QueryString: StringType{"salamka"}, TargetString: StringType{"Subject", "To"}},
 		}, Actions: []Action{
@@ -55,7 +61,7 @@ func TestFilterString(t *testing.T) {
 		}}},
 
 		// third rule
-		{"# rule:[Klobasy do spajze]\r\nif allof (exists \"From\")\r\n{\r\n\tfileinto :copy \"INBOX.MyFolder\";\r\n\tdiscard;\r\n}", Filter{Name: "Klobasy do spajze", Scope: "allof", Rules: []Rule{
+		{"# rule:[Klobasy do spajze]\r\nif false # allof (exists \"From\")\r\n{\r\n\tfileinto :copy \"INBOX.MyFolder\";\r\n\tdiscard;\r\n}", Filter{Name: "Klobasy do spajze", Enabled: false, Scope: "allof", Rules: []Rule{
 			Rule{Type: "from", Operator: "exists", TargetString: StringType{"From"}},
 		}, Actions: []Action{
 			Action{Type: "fileinto_copy", Values: StringType{"INBOX.MyFolder"}},

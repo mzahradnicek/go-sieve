@@ -28,7 +28,7 @@ var action = []struct {
 
 type Action struct {
 	Type   string     `json:"type"`
-	Values StringType `json:"values"`
+	Values StringType `json:"values,omitempty"`
 }
 
 func (a *Action) Scan(data []byte) (int, error) {

@@ -7,11 +7,11 @@ import (
 )
 
 type Rule struct {
-	Type         string
-	Operator     string
-	TargetString StringType
-	QueryString  StringType
-	NumValue     NumberType
+	Type         string     `json:"type"`
+	Operator     string     `json:"operator"`
+	TargetString StringType `json:"target_string,omitempty"`
+	QueryString  StringType `json:"query_string,omitempty"`
+	NumValue     NumberType `json:"numeric_value,omitempty"`
 }
 
 var typesTempl = map[string]bool{

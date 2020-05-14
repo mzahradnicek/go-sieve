@@ -60,7 +60,7 @@ func (ms *ManageSieve) readResponse() ([]string, error) {
 	var res []string
 
 	for ms.scanner.Scan() {
-		line := strings.ToUpper(ms.scanner.Text())
+		line := ms.scanner.Text()
 		cmd := strings.ToUpper(line)
 		if strings.HasPrefix(cmd, "OK") {
 			err = ms.scanner.Err()
@@ -81,9 +81,6 @@ func (ms *ManageSieve) readResponse() ([]string, error) {
 }
 
 func (ms *ManageSieve) runCmd(cmd string, args ...string) ([]string, error) {
-	for i, arg := range args {
-		args[i] = strconv.Quote(arg)
-	}
 	_, _ = fmt.Fprint(ms.conn, cmd, " ", strings.Join(args, " "), "\r\n")
 
 	return ms.readResponse()
@@ -93,31 +90,35 @@ func (ms *ManageSieve) runCmd(cmd string, args ...string) ([]string, error) {
 // using PLAIN auth.
 func (ms *ManageSieve) Login(user, pass string) error {
 	auth := base64.StdEncoding.EncodeToString([]byte("\x00" + user + "\x00" + pass))
-	_, err := ms.runCmd("AUTHENTICATE", "PLAIN", auth)
+	_, err := ms.runCmd("AUTHENTICATE", "\"PLAIN\"", strconv.Quote(auth))
 	return err
 }
 
 // GetScript gets sieve script by name.
 func (ms *ManageSieve) GetScript(name string) (string, error) {
-	s, err := ms.runCmd("GETSCRIPT", name)
-	return strings.Join(s[2:], "\r\n"), err
+	s, err := ms.runCmd("GETSCRIPT", strconv.Quote(name))
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join(s[1:], "\r\n"), nil
 }
 
 // PutScript replace a sieve script with new content.
 func (ms *ManageSieve) PutScript(name string, content string) error {
 	content = fmt.Sprintf("{%d+}\r\n%s", len(content), content)
-	_, err := ms.runCmd("PUTSCRIPT", name, content)
+	_, err := ms.runCmd("PUTSCRIPT", strconv.Quote(name), content)
 	return err
 }
 
 // SetActive marks the sieve script active.
 func (ms *ManageSieve) SetActive(name string) error {
-	_, err := ms.runCmd("SETACTIVE", name)
+	_, err := ms.runCmd("SETACTIVE", strconv.Quote(name))
 	return err
 }
 
 // DeleteScript deletes a sieve script by name.
 func (ms *ManageSieve) DeleteScript(name string) error {
-	_, err := ms.runCmd("DELETESCRIPT", name)
+	_, err := ms.runCmd("DELETESCRIPT", strconv.Quote(name))
 	return err
 }
